@@ -13,12 +13,29 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  late final Future<UserProfile?> _profileFuture;
+  late Future<UserProfile?> _profileFuture;
 
   @override
   void initState() {
     super.initState();
-    _profileFuture = AuthLocator.getCurrentUserProfileUseCase();
+    _profileFuture = _loadProfile();
+  }
+
+  Future<UserProfile?> _loadProfile() {
+    return AuthLocator.getCurrentUserProfileUseCase();
+  }
+
+  Future<void> _openProfileEditor() async {
+    final Object? result = await Navigator.of(
+      context,
+    ).pushNamed(AppRoutes.profileEdit);
+    final bool didUpdate = result == true;
+    if (!mounted || !didUpdate) {
+      return;
+    }
+    setState(() {
+      _profileFuture = _loadProfile();
+    });
   }
 
   UserProfile _fallbackProfile() {
@@ -68,38 +85,30 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     final ColorScheme colors = Theme.of(context).colorScheme;
 
-    return Scaffold(
-      appBar: AppBar(
-        actions: [
-          IconButton(
-            onPressed: () => _onLogout(context),
-            tooltip: 'Logout',
-            icon: const Icon(Icons.logout),
-          ),
-        ],
-      ),
-      body: FutureBuilder<UserProfile?>(
-        future: _profileFuture,
-        builder: (BuildContext context, AsyncSnapshot<UserProfile?> snapshot) {
-          if (snapshot.connectionState != ConnectionState.done) {
-            return const Center(child: CircularProgressIndicator());
-          }
+    return FutureBuilder<UserProfile?>(
+      future: _profileFuture,
+      builder: (BuildContext context, AsyncSnapshot<UserProfile?> snapshot) {
+        final UserProfile profile = snapshot.data ?? _fallbackProfile();
 
-          final UserProfile profile = snapshot.data ?? _fallbackProfile();
-
-          return Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Text(
-                  _appBarTitle(profile.role),
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
-                ),
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(_appBarTitle(profile.role)),
+            actions: [
+              IconButton(
+                onPressed: _openProfileEditor,
+                tooltip: 'Edit profile',
+                icon: const Icon(Icons.account_circle_rounded),
               ),
-              Expanded(
-                child: Padding(
+              IconButton(
+                onPressed: () => _onLogout(context),
+                tooltip: 'Logout',
+                icon: const Icon(Icons.logout),
+              ),
+            ],
+          ),
+          body: snapshot.connectionState != ConnectionState.done
+              ? const Center(child: CircularProgressIndicator())
+              : Padding(
                   padding: const EdgeInsets.all(16),
                   child: Center(
                     child: ConstrainedBox(
@@ -157,11 +166,8 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                 ),
-              ),
-            ],
-          );
-        },
-      ),
+        );
+      },
     );
   }
 }

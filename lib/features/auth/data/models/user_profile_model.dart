@@ -8,6 +8,9 @@ class UserProfileModel extends UserProfile {
     required super.email,
     required super.role,
     super.fullName,
+    super.phone,
+    super.avatarUrl,
+    super.bio,
   });
 
   factory UserProfileModel.fromDatabase(
@@ -27,6 +30,9 @@ class UserProfileModel extends UserProfile {
       email: email.isEmpty ? fallbackEmail : email,
       role: role,
       fullName: _asTrimmedOrNull(map['full_name']),
+      phone: _asTrimmedOrNull(map['phone']),
+      avatarUrl: _asTrimmedOrNull(map['avatar_url']),
+      bio: _asTrimmedOrNull(map['bio']),
     );
   }
 
@@ -37,6 +43,9 @@ class UserProfileModel extends UserProfile {
       email: fallbackEmail.isEmpty ? 'User' : fallbackEmail,
       role: UserRole.fromNullable(_asTrimmedOrNull(user.userMetadata?['role'])),
       fullName: _asTrimmedOrNull(user.userMetadata?['full_name']),
+      phone: _asTrimmedOrNull(user.userMetadata?['phone']),
+      avatarUrl: _asTrimmedOrNull(user.userMetadata?['avatar_url']),
+      bio: _asTrimmedOrNull(user.userMetadata?['bio']),
     );
   }
 

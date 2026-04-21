@@ -6,6 +6,7 @@ import 'package:ebus/features/auth/domain/usecases/get_current_user_profile_use_
 import 'package:ebus/features/auth/domain/usecases/login_with_role_use_case.dart';
 import 'package:ebus/features/auth/domain/usecases/sign_out_use_case.dart';
 import 'package:ebus/features/auth/domain/usecases/sign_up_use_case.dart';
+import 'package:ebus/features/auth/domain/usecases/update_current_user_profile_use_case.dart';
 
 class AuthLocator {
   AuthLocator._();
@@ -24,4 +25,6 @@ class AuthLocator {
   static final SignOutUseCase signOutUseCase = SignOutUseCase(_repository);
   static final GetCurrentUserProfileUseCase getCurrentUserProfileUseCase =
       GetCurrentUserProfileUseCase(_repository);
+  static final UpdateCurrentUserProfileUseCase updateCurrentUserProfileUseCase =
+      UpdateCurrentUserProfileUseCase(_repository);
 }

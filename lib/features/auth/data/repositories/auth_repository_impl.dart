@@ -55,4 +55,19 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<UserProfile?> getCurrentUserProfile() {
     return _remoteDataSource.getCurrentUserProfile();
   }
+
+  @override
+  Future<void> updateCurrentUserProfile({
+    required String fullName,
+    String? phone,
+    String? avatarUrl,
+    String? bio,
+  }) {
+    return _remoteDataSource.updateCurrentUserProfile(
+      fullName: fullName,
+      phone: phone,
+      avatarUrl: avatarUrl,
+      bio: bio,
+    );
+  }
 }

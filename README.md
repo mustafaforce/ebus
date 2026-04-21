@@ -33,6 +33,9 @@ lib/
     home/
       presentation/
         pages/
+    profile/
+      presentation/
+        pages/
 ```
 
 Layer direction:
@@ -52,5 +55,8 @@ Current state:
 1. Create `.env` at project root:
    - `SUPABASE_URL=...`
    - `SUPABASE_ANON_KEY=...`
-2. Run `flutter pub get`
-3. Run `flutter run`
+2. Run SQL files in Supabase SQL editor:
+   - `supabase/sql/sql_commands_users.sql`
+   - `supabase/sql/sql_commands_profile_update.sql`
+3. Run `flutter pub get`
+4. Run `flutter run`

@@ -18,4 +18,11 @@ abstract class AuthRepository {
   Future<void> signOut();
 
   Future<UserProfile?> getCurrentUserProfile();
+
+  Future<void> updateCurrentUserProfile({
+    required String fullName,
+    String? phone,
+    String? avatarUrl,
+    String? bio,
+  });
 }

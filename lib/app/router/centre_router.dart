@@ -2,6 +2,7 @@ import 'package:ebus/app/router/app_routes.dart';
 import 'package:ebus/features/auth/presentation/pages/driver_login_page.dart';
 import 'package:ebus/features/auth/presentation/pages/driver_sign_up_page.dart';
 import 'package:ebus/features/home/presentation/pages/home_page.dart';
+import 'package:ebus/features/profile/presentation/pages/edit_profile_page.dart';
 import 'package:flutter/material.dart';
 
 class CentreRouter {
@@ -22,6 +23,11 @@ class CentreRouter {
       case AppRoutes.driverSignUp:
         return MaterialPageRoute<void>(
           builder: (_) => const DriverSignUpPage(),
+          settings: settings,
+        );
+      case AppRoutes.profileEdit:
+        return MaterialPageRoute<bool>(
+          builder: (_) => const EditProfilePage(),
           settings: settings,
         );
       default:

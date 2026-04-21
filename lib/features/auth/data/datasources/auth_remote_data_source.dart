@@ -15,6 +15,13 @@ abstract class AuthRemoteDataSource {
   Future<void> signOut();
 
   Future<UserProfileModel?> getCurrentUserProfile();
+
+  Future<void> updateCurrentUserProfile({
+    required String fullName,
+    String? phone,
+    String? avatarUrl,
+    String? bio,
+  });
 }
 
 class SupabaseAuthRemoteDataSource implements AuthRemoteDataSource {
@@ -56,11 +63,21 @@ class SupabaseAuthRemoteDataSource implements AuthRemoteDataSource {
       return null;
     }
 
-    final Map<String, dynamic>? map = await _client
-        .from('users')
-        .select('id, email, full_name, role')
-        .eq('id', user.id)
-        .maybeSingle();
+    Map<String, dynamic>? map;
+    try {
+      map = await _client
+          .from('users')
+          .select('id, email, full_name, role, phone, avatar_url, bio')
+          .eq('id', user.id)
+          .maybeSingle();
+    } catch (_) {
+      // Backward-compatible fallback if profile columns are not migrated yet.
+      map = await _client
+          .from('users')
+          .select('id, email, full_name, role')
+          .eq('id', user.id)
+          .maybeSingle();
+    }
 
     if (map == null) {
       return UserProfileModel.fromAuthUser(user);
@@ -76,11 +93,44 @@ class SupabaseAuthRemoteDataSource implements AuthRemoteDataSource {
     );
   }
 
+  @override
+  Future<void> updateCurrentUserProfile({
+    required String fullName,
+    String? phone,
+    String? avatarUrl,
+    String? bio,
+  }) async {
+    final User? user = _client.auth.currentUser;
+    if (user == null) {
+      throw StateError('Authenticated user not found');
+    }
+
+    final String name = fullName.trim();
+    if (name.isEmpty) {
+      throw StateError('Full name is required');
+    }
+
+    await _client
+        .from('users')
+        .update(<String, dynamic>{
+          'full_name': name,
+          'phone': _normalizedOrNull(phone),
+          'avatar_url': _normalizedOrNull(avatarUrl),
+          'bio': _normalizedOrNull(bio),
+        })
+        .eq('id', user.id);
+  }
+
   String? _asTrimmedOrNull(dynamic value) {
     if (value is! String) {
       return null;
     }
     final String trimmed = value.trim();
+    return trimmed.isEmpty ? null : trimmed;
+  }
+
+  String? _normalizedOrNull(String? value) {
+    final String trimmed = (value ?? '').trim();
     return trimmed.isEmpty ? null : trimmed;
   }
 }
