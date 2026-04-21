@@ -1,6 +1,7 @@
 import 'package:ebus/app/router/app_routes.dart';
-import 'package:ebus/core/network/supabase_client_provider.dart';
 import 'package:ebus/core/services/navigation_service.dart';
+import 'package:ebus/features/auth/auth_locator.dart';
+import 'package:ebus/features/auth/domain/entities/user_role.dart';
 import 'package:ebus/features/auth/presentation/widgets/auth_shell.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -22,6 +23,7 @@ class _DriverSignUpPageState extends State<DriverSignUpPage> {
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  UserRole _selectedRole = UserRole.passenger;
 
   @override
   void dispose() {
@@ -42,21 +44,18 @@ class _DriverSignUpPageState extends State<DriverSignUpPage> {
     final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
 
     try {
-      await SupabaseClientProvider.client.auth.signUp(
+      await AuthLocator.signUpUseCase(
+        fullName: _fullNameController.text.trim(),
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
-        data: <String, dynamic>{
-          'full_name': _fullNameController.text.trim(),
-          'role': 'driver',
-        },
+        role: _selectedRole,
       );
 
-      await SupabaseClientProvider.client.auth.signOut();
       if (!mounted) return;
       messenger.showSnackBar(
         const SnackBar(
           content: Text(
-            'Signup successful. Please verify your email from the magic link, then login.',
+            'Signup successful. Please verify email, then login with selected role.',
           ),
         ),
       );
@@ -82,8 +81,8 @@ class _DriverSignUpPageState extends State<DriverSignUpPage> {
   Widget build(BuildContext context) {
     return AuthShell(
       icon: Icons.badge_rounded,
-      title: 'Create Driver Account',
-      subtitle: 'Set up credentials and verify through your email magic link.',
+      title: 'Create Account',
+      subtitle: 'Set up credentials, pick role, then verify from email link.',
       footer: TextButton(
         onPressed: _isLoading ? null : NavigationService.pop,
         child: const Text('Already have an account? Login'),
@@ -93,6 +92,37 @@ class _DriverSignUpPageState extends State<DriverSignUpPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            Text(
+              'Role',
+              style: Theme.of(
+                context,
+              ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 8),
+            SegmentedButton<UserRole>(
+              showSelectedIcon: false,
+              segments: const <ButtonSegment<UserRole>>[
+                ButtonSegment<UserRole>(
+                  value: UserRole.driver,
+                  label: Text('Driver'),
+                  icon: Icon(Icons.directions_bus_rounded),
+                ),
+                ButtonSegment<UserRole>(
+                  value: UserRole.passenger,
+                  label: Text('Passenger'),
+                  icon: Icon(Icons.person_rounded),
+                ),
+              ],
+              selected: <UserRole>{_selectedRole},
+              onSelectionChanged: _isLoading
+                  ? null
+                  : (Set<UserRole> selection) {
+                      if (selection.isNotEmpty) {
+                        setState(() => _selectedRole = selection.first);
+                      }
+                    },
+            ),
+            const SizedBox(height: 14),
             TextFormField(
               controller: _fullNameController,
               textInputAction: TextInputAction.next,
