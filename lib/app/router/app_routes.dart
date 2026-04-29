@@ -8,4 +8,5 @@ class AppRoutes {
   static const String routeSelection = '/route/selection';
   static const String stopSelection = '/stop/selection';
   static const String passengerTracking = '/tracking/passenger';
+  static const String routeList = '/route/list';
 }

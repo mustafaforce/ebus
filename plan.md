@@ -15,7 +15,7 @@ Semi-real-time bus tracking app where drivers manually update bus location at st
 | 4 | Current Bus Location Display | ✅ Completed | ☑️ | ☑️ | Passenger sees bus position |
 | 5 | Next Stop Information | ✅ Completed | ☑️ | ☑️ | Shows upcoming stop |
 | 6 | Last Updated Time Display | ✅ Completed | ☑️ | ☑️ | Shows last update timestamp |
-| 7 | Route & Stop List View | ⏳ Pending | ☐ | ☐ | Full route with all stops |
+| 7 | Route & Stop List View | ✅ Completed | ☑️ | ☑️ | Full route with all stops |
 
 ---
 
@@ -111,12 +111,13 @@ Semi-real-time bus tracking app where drivers manually update bus location at st
 | 2026-04-29 | Stop Selection Dropdown | SQL + Dart Code | ✅ Completed |
 | 2026-04-29 | Manual Location Update | SQL + Dart Code | ✅ Completed |
 | 2026-04-29 | Passenger Tracking (4,5,6) | SQL + Dart Code | ✅ Completed |
+| 2026-04-29 | Route & Stop List View | Dart Code | ✅ Completed |
 
 ---
 
 ## Current Status
 
-**Last Completed:** Features 4, 5, 6 - Passenger Tracking
-**Next Feature:** Feature 7 - Route & Stop List View
+**Last Completed:** Feature 7 - Route & Stop List View
+**All Features:** ✅ Completed
 
 ---

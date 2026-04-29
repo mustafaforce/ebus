@@ -75,12 +75,16 @@ class _HomePageState extends State<HomePage> {
 
   String _roleMessage(UserRole role) {
     return role == UserRole.driver
-        ? 'Auth is ready. Next we can build driver route selection and stop update.'
-        : 'Auth is ready. Next we can build passenger route search and live bus tracking.';
+        ? 'Select your route and update your current stop to let passengers track your bus.'
+        : 'Track your bus or browse all routes and stops.';
   }
 
   Future<void> _openPassengerTracking() async {
     await Navigator.of(context).pushNamed(AppRoutes.passengerTracking);
+  }
+
+  Future<void> _openRouteList() async {
+    await Navigator.of(context).pushNamed(AppRoutes.routeList);
   }
 
   IconData _roleIcon(UserRole role) {
@@ -192,6 +196,15 @@ class _HomePageState extends State<HomePage> {
                                   onPressed: _openPassengerTracking,
                                   icon: const Icon(Icons.map),
                                   label: const Text('Track Bus'),
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              SizedBox(
+                                width: double.infinity,
+                                child: OutlinedButton.icon(
+                                  onPressed: _openRouteList,
+                                  icon: const Icon(Icons.list),
+                                  label: const Text('View Routes'),
                                 ),
                               ),
                             ] else if (profile.role == UserRole.driver) ...[
