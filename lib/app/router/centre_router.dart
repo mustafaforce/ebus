@@ -3,6 +3,9 @@ import 'package:ebus/features/auth/presentation/pages/driver_login_page.dart';
 import 'package:ebus/features/auth/presentation/pages/driver_sign_up_page.dart';
 import 'package:ebus/features/home/presentation/pages/home_page.dart';
 import 'package:ebus/features/profile/presentation/pages/edit_profile_page.dart';
+import 'package:ebus/features/routes/presentation/pages/route_selection_page.dart';
+import 'package:ebus/features/stops/presentation/pages/stop_selection_page.dart';
+import 'package:ebus/features/tracking/presentation/pages/passenger_tracking_page.dart';
 import 'package:flutter/material.dart';
 
 class CentreRouter {
@@ -28,6 +31,21 @@ class CentreRouter {
       case AppRoutes.profileEdit:
         return MaterialPageRoute<bool>(
           builder: (_) => const EditProfilePage(),
+          settings: settings,
+        );
+      case AppRoutes.routeSelection:
+        return MaterialPageRoute<void>(
+          builder: (_) => const RouteSelectionPage(),
+          settings: settings,
+        );
+      case AppRoutes.stopSelection:
+        return MaterialPageRoute<void>(
+          builder: (_) => const StopSelectionPage(),
+          settings: settings,
+        );
+      case AppRoutes.passengerTracking:
+        return MaterialPageRoute<void>(
+          builder: (_) => const PassengerTrackingPage(),
           settings: settings,
         );
       default:
