@@ -1,3 +1,4 @@
+import 'package:ebus/app/theme/design_tokens.dart';
 import 'package:ebus/features/route_list/data/models/route_with_stops_model.dart';
 import 'package:ebus/features/route_management/presentation/controllers/create_route_controller.dart';
 import 'package:flutter/material.dart';
@@ -29,112 +30,107 @@ class _CreateRoutePageState extends State<CreateRoutePage> {
     if (ok) {
       messenger.showSnackBar(
         SnackBar(
-          content: Text(
-            _controller.isEditMode
-                ? 'Route updated successfully'
-                : 'Route created successfully',
-          ),
-          backgroundColor: Colors.green,
+          content: Text(_controller.isEditMode ? 'Route updated' : 'Route created'),
         ),
       );
       navigator.pop(true);
     } else if (_controller.errorMessage != null) {
       messenger.showSnackBar(
-        SnackBar(
-          content: Text(_controller.errorMessage!),
-          backgroundColor: Colors.red,
-        ),
+        SnackBar(content: Text(_controller.errorMessage!)),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final ColorScheme colors = Theme.of(context).colorScheme;
+    final TextTheme text = Theme.of(context).textTheme;
     final bool editMode = _controller.isEditMode;
 
     return Scaffold(
+      backgroundColor: AppColors.canvas,
       appBar: AppBar(
-        title: Text(editMode ? 'Edit Route' : 'Create Route'),
-        centerTitle: true,
+        title: Text(editMode ? 'Edit route' : 'New route'),
       ),
       body: ListenableBuilder(
         listenable: _controller,
         builder: (context, _) {
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.lg,
+              AppSpacing.sm,
+              AppSpacing.lg,
+              AppSpacing.xxl,
+            ),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                Text(
+                  editMode ? 'Update details.' : 'Define the route.',
+                  style: text.displaySmall,
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  'Name, description, then list each stop in order.',
+                  style: text.bodyMedium,
+                ),
+                const SizedBox(height: AppSpacing.xl),
+                _FieldLabel('Route name'),
+                const SizedBox(height: 6),
                 TextField(
                   controller: _controller.nameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Route name',
-                    hintText: 'e.g. Route 404',
-                    border: OutlineInputBorder(),
-                  ),
+                  decoration: const InputDecoration(hintText: 'Route 404'),
                   enabled: !_controller.isSubmitting,
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: AppSpacing.md),
+                _FieldLabel('Description (optional)'),
+                const SizedBox(height: 6),
                 TextField(
                   controller: _controller.descriptionController,
-                  decoration: const InputDecoration(
-                    labelText: 'Description (optional)',
-                    hintText: 'e.g. Downtown - Airport',
-                    border: OutlineInputBorder(),
-                  ),
+                  decoration: const InputDecoration(hintText: 'Downtown — Airport'),
                   enabled: !_controller.isSubmitting,
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: AppSpacing.xl),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      'Stops',
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleMedium
-                          ?.copyWith(fontWeight: FontWeight.bold),
-                    ),
+                    Text('Stops', style: text.titleLarge),
                     TextButton.icon(
-                      onPressed: _controller.isSubmitting
-                          ? null
-                          : _controller.addStop,
-                      icon: const Icon(Icons.add),
+                      onPressed: _controller.isSubmitting ? null : _controller.addStop,
+                      icon: const Icon(Icons.add, size: 18),
                       label: const Text('Add stop'),
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: AppSpacing.sm),
                 ..._controller.stops.asMap().entries.map((entry) {
                   final int idx = entry.key;
                   final StopDraft stop = entry.value;
-                  return Card(
-                    margin: const EdgeInsets.only(bottom: 8),
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+                    child: Container(
+                      padding: const EdgeInsets.all(AppSpacing.sm),
+                      decoration: BoxDecoration(
+                        color: AppColors.parchment,
+                        borderRadius: BorderRadius.circular(AppRadius.md),
+                      ),
                       child: Row(
                         children: [
-                          CircleAvatar(
-                            radius: 14,
-                            backgroundColor: colors.primary,
+                          SizedBox(
+                            width: 24,
                             child: Text(
                               '${idx + 1}',
-                              style: TextStyle(
-                                color: colors.onPrimary,
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
+                              style: text.labelMedium?.copyWith(
+                                color: AppColors.inkMuted48,
                               ),
                             ),
                           ),
-                          const SizedBox(width: 12),
                           Expanded(
                             child: TextField(
                               controller: stop.controller,
                               decoration: InputDecoration(
-                                hintText: 'Stop ${idx + 1} name',
-                                border: const OutlineInputBorder(),
+                                hintText: 'Stop ${idx + 1}',
                                 isDense: true,
+                                fillColor: AppColors.canvas,
                               ),
                               enabled: !_controller.isSubmitting,
                             ),
@@ -143,7 +139,7 @@ class _CreateRoutePageState extends State<CreateRoutePage> {
                             onPressed: _controller.isSubmitting || idx == 0
                                 ? null
                                 : () => _controller.moveStopUp(idx),
-                            icon: const Icon(Icons.arrow_upward),
+                            icon: const Icon(Icons.arrow_upward, size: 18),
                             tooltip: 'Move up',
                           ),
                           IconButton(
@@ -151,7 +147,7 @@ class _CreateRoutePageState extends State<CreateRoutePage> {
                                     idx == _controller.stops.length - 1
                                 ? null
                                 : () => _controller.moveStopDown(idx),
-                            icon: const Icon(Icons.arrow_downward),
+                            icon: const Icon(Icons.arrow_downward, size: 18),
                             tooltip: 'Move down',
                           ),
                           IconButton(
@@ -159,7 +155,11 @@ class _CreateRoutePageState extends State<CreateRoutePage> {
                                     _controller.stops.length <= 1
                                 ? null
                                 : () => _controller.removeStop(idx),
-                            icon: Icon(Icons.delete, color: colors.error),
+                            icon: const Icon(
+                              Icons.close,
+                              size: 18,
+                              color: Color(0xFFD93025),
+                            ),
                             tooltip: 'Remove',
                           ),
                         ],
@@ -167,30 +167,40 @@ class _CreateRoutePageState extends State<CreateRoutePage> {
                     ),
                   );
                 }),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: _controller.isSubmitting ? null : _onSubmit,
-                    icon: _controller.isSubmitting
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : Icon(editMode ? Icons.save : Icons.check),
-                    label: Text(
-                      _controller.isSubmitting
-                          ? (editMode ? 'Saving...' : 'Creating...')
-                          : (editMode ? 'Save Changes' : 'Create Route'),
-                    ),
-                  ),
+                const SizedBox(height: AppSpacing.xl),
+                FilledButton(
+                  onPressed: _controller.isSubmitting ? null : _onSubmit,
+                  child: _controller.isSubmitting
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation(Colors.white),
+                          ),
+                        )
+                      : Text(editMode ? 'Save changes' : 'Create route'),
                 ),
               ],
             ),
           );
         },
       ),
+    );
+  }
+}
+
+class _FieldLabel extends StatelessWidget {
+  const _FieldLabel(this.text);
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+            color: AppColors.inkMuted80,
+          ),
     );
   }
 }

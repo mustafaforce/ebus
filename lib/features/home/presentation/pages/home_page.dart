@@ -1,4 +1,5 @@
 import 'package:ebus/app/router/app_routes.dart';
+import 'package:ebus/app/theme/design_tokens.dart';
 import 'package:ebus/core/services/navigation_service.dart';
 import 'package:ebus/core/services/route_service.dart';
 import 'package:ebus/core/services/stop_service.dart';
@@ -30,13 +31,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _openProfileEditor() async {
-    final Object? result = await Navigator.of(
-      context,
-    ).pushNamed(AppRoutes.profileEdit);
-    final bool didUpdate = result == true;
-    if (!mounted || !didUpdate) {
-      return;
-    }
+    final Object? result = await Navigator.of(context).pushNamed(AppRoutes.profileEdit);
+    if (!mounted || result != true) return;
     setState(() {
       _profileFuture = _loadProfile();
     });
@@ -45,7 +41,7 @@ class _HomePageState extends State<HomePage> {
   UserProfile _fallbackProfile() {
     return const UserProfile(
       id: '',
-      email: 'User',
+      email: '',
       role: UserRole.passenger,
       fullName: null,
     );
@@ -55,28 +51,12 @@ class _HomePageState extends State<HomePage> {
     final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
     try {
       await AuthLocator.signOutUseCase();
-      await NavigationService.pushNamedAndRemoveUntil<void>(
-        AppRoutes.driverLogin,
-      );
+      await NavigationService.pushNamedAndRemoveUntil<void>(AppRoutes.driverLogin);
     } catch (_) {
       messenger.showSnackBar(
         const SnackBar(content: Text('Logout failed. Please try again.')),
       );
     }
-  }
-
-  String _appBarTitle(UserRole role) {
-    return role == UserRole.driver ? 'eBus Driver' : 'eBus Passenger';
-  }
-
-  String _welcomeTitle(UserRole role) {
-    return role == UserRole.driver ? 'Welcome Driver' : 'Welcome Passenger';
-  }
-
-  String _roleMessage(UserRole role) {
-    return role == UserRole.driver
-        ? 'Select your route and update your current stop to let passengers track your bus.'
-        : 'Track your bus or browse all routes and stops.';
   }
 
   Future<void> _openPassengerTracking() async {
@@ -87,30 +67,20 @@ class _HomePageState extends State<HomePage> {
     await Navigator.of(context).pushNamed(AppRoutes.routeList);
   }
 
-  IconData _roleIcon(UserRole role) {
-    return role == UserRole.driver
-        ? Icons.directions_bus_rounded
-        : Icons.person_pin_circle_rounded;
+  Future<void> _openCreateRoute() async {
+    await Navigator.of(context).pushNamed(AppRoutes.createRoute);
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _openManageRoutes() async {
+    await Navigator.of(context).pushNamed(AppRoutes.manageRoutes);
+    if (mounted) setState(() {});
   }
 
   Future<void> _openRouteSelection() async {
     final result = await Navigator.of(context).pushNamed(AppRoutes.routeSelection);
     if (result != null && mounted) {
       RouteService.instance.setRoute(result as dynamic);
-      setState(() {});
-    }
-  }
-
-  Future<void> _openCreateRoute() async {
-    await Navigator.of(context).pushNamed(AppRoutes.createRoute);
-    if (mounted) {
-      setState(() {});
-    }
-  }
-
-  Future<void> _openManageRoutes() async {
-    await Navigator.of(context).pushNamed(AppRoutes.manageRoutes);
-    if (mounted) {
       setState(() {});
     }
   }
@@ -125,300 +95,356 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final ColorScheme colors = Theme.of(context).colorScheme;
+    final TextTheme text = Theme.of(context).textTheme;
 
     return FutureBuilder<UserProfile?>(
       future: _profileFuture,
       builder: (BuildContext context, AsyncSnapshot<UserProfile?> snapshot) {
         final UserProfile profile = snapshot.data ?? _fallbackProfile();
+        final bool isDriver = profile.role == UserRole.driver;
+        final bool loading = snapshot.connectionState != ConnectionState.done;
 
         return Scaffold(
+          backgroundColor: AppColors.canvas,
           appBar: AppBar(
-            title: Text(_appBarTitle(profile.role)),
+            title: const Text('eBus'),
             actions: [
               IconButton(
                 onPressed: _openProfileEditor,
-                tooltip: 'Edit profile',
-                icon: const Icon(Icons.account_circle_rounded),
+                tooltip: 'Profile',
+                icon: const Icon(Icons.person_outline),
               ),
               IconButton(
                 onPressed: () => _onLogout(context),
                 tooltip: 'Logout',
                 icon: const Icon(Icons.logout),
               ),
+              const SizedBox(width: AppSpacing.xs),
             ],
           ),
-          body: snapshot.connectionState != ConnectionState.done
+          body: loading
               ? const Center(child: CircularProgressIndicator())
               : SingleChildScrollView(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.lg,
+                    AppSpacing.lg,
+                    AppSpacing.lg,
+                    AppSpacing.xxl,
+                  ),
                   child: Center(
                     child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 600),
-                      child: Container(
-                        padding: const EdgeInsets.all(22),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              colors.primary.withValues(alpha: 0.16),
-                              colors.secondary.withValues(alpha: 0.13),
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
+                      constraints: const BoxConstraints(maxWidth: 640),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            isDriver ? 'Driver.' : 'Passenger.',
+                            style: text.displayMedium,
                           ),
-                          borderRadius: BorderRadius.circular(24),
-                        ),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Icon(
-                                  _roleIcon(profile.role),
-                                  color: colors.primary,
-                                ),
-                                const SizedBox(width: 10),
-                                Text(
-                                  _welcomeTitle(profile.role),
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .headlineSmall
-                                      ?.copyWith(fontWeight: FontWeight.w700),
-                                ),
-                              ],
+                          const SizedBox(height: AppSpacing.xs),
+                          Text(
+                            isDriver
+                                ? 'Manage routes and broadcast your current stop.'
+                                : 'Track your bus or browse routes.',
+                            style: text.headlineMedium?.copyWith(
+                              color: AppColors.inkMuted80,
+                              fontSize: 21,
+                              fontWeight: FontWeight.w400,
+                              height: 1.3,
                             ),
-                            const SizedBox(height: 10),
+                          ),
+                          if (profile.email.isNotEmpty) ...[
+                            const SizedBox(height: AppSpacing.sm),
                             Text(
                               profile.email,
-                              style: Theme.of(context).textTheme.bodyLarge,
+                              style: text.bodySmall?.copyWith(
+                                color: AppColors.inkMuted48,
+                              ),
                             ),
-                            const SizedBox(height: 18),
-                            Container(
-                              padding: const EdgeInsets.all(14),
-                              decoration: BoxDecoration(
-                                color: colors.surface.withValues(alpha: 0.7),
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              child: Text(_roleMessage(profile.role)),
-                            ),
-                            if (profile.role == UserRole.passenger) ...[
-                              const SizedBox(height: 24),
-                              SizedBox(
-                                width: double.infinity,
-                                child: ElevatedButton.icon(
-                                  onPressed: _openPassengerTracking,
-                                  icon: const Icon(Icons.map),
-                                  label: const Text('Track Bus'),
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              SizedBox(
-                                width: double.infinity,
-                                child: OutlinedButton.icon(
-                                  onPressed: _openRouteList,
-                                  icon: const Icon(Icons.list),
-                                  label: const Text('View Routes'),
-                                ),
-                              ),
-                            ] else if (profile.role == UserRole.driver) ...[
-                              const SizedBox(height: 24),
-                              SizedBox(
-                                width: double.infinity,
-                                child: OutlinedButton.icon(
-                                  onPressed: _openCreateRoute,
-                                  icon: const Icon(Icons.add_road),
-                                  label: const Text('Create Route'),
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              SizedBox(
-                                width: double.infinity,
-                                child: OutlinedButton.icon(
-                                  onPressed: _openManageRoutes,
-                                  icon: const Icon(Icons.edit_road),
-                                  label: const Text('Manage Routes'),
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              SizedBox(
-                                width: double.infinity,
-                                child: OutlinedButton.icon(
-                                  onPressed: _openRouteList,
-                                  icon: const Icon(Icons.list),
-                                  label: const Text('View Routes'),
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              if (RouteService.instance.hasRoute) ...[
-                                Container(
-                                  width: double.infinity,
-                                  padding: const EdgeInsets.all(16),
-                                  decoration: BoxDecoration(
-                                    color: colors.primaryContainer,
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Icon(
-                                        Icons.check_circle,
-                                        color: colors.onPrimaryContainer,
-                                      ),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              'Selected Route',
-                                              style: TextStyle(
-                                                color: colors.onPrimaryContainer,
-                                                fontSize: 12,
-                                              ),
-                                            ),
-                                            Text(
-                                              RouteService.instance.selectedRoute!.name,
-                                              style: TextStyle(
-                                                color: colors.onPrimaryContainer,
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 16,
-                                              ),
-                                            ),
-                                            if (RouteService.instance.selectedRoute!.description != null)
-                                              Text(
-                                                RouteService.instance.selectedRoute!.description!,
-                                                style: TextStyle(
-                                                  color: colors.onPrimaryContainer.withValues(alpha: 0.7),
-                                                  fontSize: 12,
-                                                ),
-                                              ),
-                                          ],
-                                        ),
-                                      ),
-                                      IconButton(
-                                        onPressed: () {
-                                          RouteService.instance.clearRoute();
-                                          setState(() {});
-                                        },
-                                        icon: Icon(
-                                          Icons.close,
-                                          color: colors.onPrimaryContainer,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(height: 12),
-                              ],
-                              SizedBox(
-                                width: double.infinity,
-                                child: ElevatedButton.icon(
-                                  onPressed: _openRouteSelection,
-                                  icon: Icon(RouteService.instance.hasRoute ? Icons.swap_horiz : Icons.map),
-                                  label: Text(RouteService.instance.hasRoute ? 'Change Route' : 'Select Route'),
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              if (StopService.instance.hasStop) ...[
-                                Container(
-                                  width: double.infinity,
-                                  padding: const EdgeInsets.all(16),
-                                  decoration: BoxDecoration(
-                                    color: colors.secondaryContainer,
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Icon(
-                                        Icons.location_on,
-                                        color: colors.onSecondaryContainer,
-                                      ),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              'Current Stop',
-                                              style: TextStyle(
-                                                color: colors.onSecondaryContainer,
-                                                fontSize: 12,
-                                              ),
-                                            ),
-                                            Text(
-                                              StopService.instance.selectedStop!.name,
-                                              style: TextStyle(
-                                                color: colors.onSecondaryContainer,
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 16,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(height: 12),
-                              ],
-                              SizedBox(
-                                width: double.infinity,
-                                child: OutlinedButton.icon(
-                                  onPressed: RouteService.instance.hasRoute ? _openStopSelection : null,
-                                  icon: const Icon(Icons.location_on),
-                                  label: Text(StopService.instance.hasStop ? 'Change Stop' : 'Update Stop'),
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              ListenableBuilder(
-                                listenable: _locationController,
-                                builder: (context, _) {
-                                  return SizedBox(
-                                    width: double.infinity,
-                                    child: ElevatedButton.icon(
-                                      onPressed: (RouteService.instance.hasRoute && StopService.instance.hasStop)
-                                          ? () async {
-                                              await _locationController.updateLocation();
-                                              if (mounted) {
-                                                if (_locationController.successMessage != null) {
-                                                  ScaffoldMessenger.of(context).showSnackBar(
-                                                    SnackBar(
-                                                      content: Text(_locationController.successMessage!),
-                                                      backgroundColor: Colors.green,
-                                                    ),
-                                                  );
-                                                } else if (_locationController.errorMessage != null) {
-                                                  ScaffoldMessenger.of(context).showSnackBar(
-                                                    SnackBar(
-                                                      content: Text(_locationController.errorMessage!),
-                                                      backgroundColor: Colors.red,
-                                                    ),
-                                                  );
-                                                }
-                                              }
-                                            }
-                                          : null,
-                                      icon: _locationController.isUpdating
-                                          ? const SizedBox(
-                                              width: 20,
-                                              height: 20,
-                                              child: CircularProgressIndicator(strokeWidth: 2),
-                                            )
-                                          : const Icon(Icons.upload),
-                                      label: Text(_locationController.isUpdating ? 'Updating...' : 'Confirm Location Update'),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ],
                           ],
-                        ),
+                          const SizedBox(height: AppSpacing.xl),
+                          if (isDriver)
+                            _DriverSection(
+                              locationController: _locationController,
+                              onCreateRoute: _openCreateRoute,
+                              onManageRoutes: _openManageRoutes,
+                              onViewRoutes: _openRouteList,
+                              onSelectRoute: _openRouteSelection,
+                              onSelectStop: _openStopSelection,
+                              onRouteCleared: () => setState(() {}),
+                            )
+                          else
+                            _PassengerSection(
+                              onTrack: _openPassengerTracking,
+                              onViewRoutes: _openRouteList,
+                            ),
+                        ],
                       ),
                     ),
                   ),
                 ),
         );
       },
+    );
+  }
+}
+
+class _PassengerSection extends StatelessWidget {
+  const _PassengerSection({
+    required this.onTrack,
+    required this.onViewRoutes,
+  });
+
+  final VoidCallback onTrack;
+  final VoidCallback onViewRoutes;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        FilledButton(onPressed: onTrack, child: const Text('Track Bus')),
+        const SizedBox(height: AppSpacing.sm),
+        OutlinedButton(onPressed: onViewRoutes, child: const Text('View Routes')),
+      ],
+    );
+  }
+}
+
+class _DriverSection extends StatelessWidget {
+  const _DriverSection({
+    required this.locationController,
+    required this.onCreateRoute,
+    required this.onManageRoutes,
+    required this.onViewRoutes,
+    required this.onSelectRoute,
+    required this.onSelectStop,
+    required this.onRouteCleared,
+  });
+
+  final LocationUpdateController locationController;
+  final VoidCallback onCreateRoute;
+  final VoidCallback onManageRoutes;
+  final VoidCallback onViewRoutes;
+  final VoidCallback onSelectRoute;
+  final VoidCallback onSelectStop;
+  final VoidCallback onRouteCleared;
+
+  @override
+  Widget build(BuildContext context) {
+    final TextTheme text = Theme.of(context).textTheme;
+    final bool hasRoute = RouteService.instance.hasRoute;
+    final bool hasStop = StopService.instance.hasStop;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _SectionLabel('Broadcast'),
+        const SizedBox(height: AppSpacing.sm),
+        _SummaryCard(
+          label: 'Route',
+          value: hasRoute ? RouteService.instance.selectedRoute!.name : 'Not selected',
+          description: hasRoute
+              ? RouteService.instance.selectedRoute!.description
+              : null,
+          trailing: hasRoute
+              ? IconButton(
+                  onPressed: () {
+                    RouteService.instance.clearRoute();
+                    onRouteCleared();
+                  },
+                  icon: const Icon(Icons.close, size: 18),
+                  tooltip: 'Clear route',
+                )
+              : null,
+          onTap: onSelectRoute,
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        _SummaryCard(
+          label: 'Current stop',
+          value: hasStop ? StopService.instance.selectedStop!.name : 'Not set',
+          onTap: hasRoute ? onSelectStop : null,
+        ),
+        const SizedBox(height: AppSpacing.md),
+        ListenableBuilder(
+          listenable: locationController,
+          builder: (context, _) {
+            final bool enabled = hasRoute && hasStop && !locationController.isUpdating;
+            return FilledButton(
+              onPressed: enabled
+                  ? () async {
+                      final messenger = ScaffoldMessenger.of(context);
+                      await locationController.updateLocation();
+                      if (!context.mounted) return;
+                      final msg = locationController.successMessage ??
+                          locationController.errorMessage;
+                      if (msg != null) {
+                        messenger.showSnackBar(SnackBar(content: Text(msg)));
+                      }
+                    }
+                  : null,
+              child: locationController.isUpdating
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation(Colors.white),
+                      ),
+                    )
+                  : const Text('Confirm Location'),
+            );
+          },
+        ),
+        const SizedBox(height: AppSpacing.xl),
+        _SectionLabel('Routes'),
+        const SizedBox(height: AppSpacing.sm),
+        _ActionRow(
+          label: 'Create new route',
+          onTap: onCreateRoute,
+        ),
+        const Divider(height: 1),
+        _ActionRow(
+          label: 'Manage routes',
+          onTap: onManageRoutes,
+        ),
+        const Divider(height: 1),
+        _ActionRow(
+          label: 'View all routes',
+          onTap: onViewRoutes,
+          showDivider: false,
+        ),
+        const SizedBox(height: AppSpacing.lg),
+        Text(
+          'All interactive elements share one accent. Tap a row to open it.',
+          style: text.labelSmall,
+        ),
+      ],
+    );
+  }
+}
+
+class _SectionLabel extends StatelessWidget {
+  const _SectionLabel(this.text);
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+            color: AppColors.inkMuted48,
+            letterSpacing: 0,
+          ),
+    );
+  }
+}
+
+class _SummaryCard extends StatelessWidget {
+  const _SummaryCard({
+    required this.label,
+    required this.value,
+    this.description,
+    this.trailing,
+    this.onTap,
+  });
+
+  final String label;
+  final String value;
+  final String? description;
+  final Widget? trailing;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final TextTheme text = Theme.of(context).textTheme;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        child: Container(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          decoration: BoxDecoration(
+            color: AppColors.parchment,
+            borderRadius: BorderRadius.circular(AppRadius.lg),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(label, style: text.labelSmall),
+                    const SizedBox(height: 2),
+                    Text(
+                      value,
+                      style: text.titleMedium,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (description != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        description!,
+                        style: text.bodySmall,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              if (trailing != null) trailing!,
+              if (onTap != null && trailing == null)
+                const Icon(
+                  Icons.chevron_right,
+                  color: AppColors.inkMuted48,
+                  size: 20,
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ActionRow extends StatelessWidget {
+  const _ActionRow({
+    required this.label,
+    required this.onTap,
+    this.showDivider = true,
+  });
+
+  final String label;
+  final VoidCallback onTap;
+  final bool showDivider;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  label,
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
+              ),
+              const Icon(
+                Icons.chevron_right,
+                color: AppColors.inkMuted48,
+                size: 20,
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

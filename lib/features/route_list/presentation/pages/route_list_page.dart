@@ -1,3 +1,4 @@
+import 'package:ebus/app/theme/design_tokens.dart';
 import 'package:ebus/features/route_list/data/models/route_with_stops_model.dart';
 import 'package:ebus/features/route_list/route_list_locator.dart';
 import 'package:flutter/material.dart';
@@ -8,8 +9,8 @@ class RouteListController extends ChangeNotifier {
   List<RouteWithStopsModel> _routes = [];
   List<RouteWithStopsModel> get routes => _routes;
 
-  Set<String> _expandedRoutes = {};
-  Set<String> get expandedRoutes => _expandedRoutes;
+  final Set<String> _expandedRoutes = {};
+  bool isRouteExpanded(String routeId) => _expandedRoutes.contains(routeId);
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
@@ -25,10 +26,10 @@ class RouteListController extends ChangeNotifier {
     try {
       _routes = await RouteListLocator.getRoutesWithStopsUseCase();
       if (_routes.isEmpty) {
-        _errorMessage = 'No routes available';
+        _errorMessage = 'No routes available.';
       }
-    } catch (e) {
-      _errorMessage = 'Failed to load routes';
+    } catch (_) {
+      _errorMessage = 'Failed to load routes.';
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -42,10 +43,6 @@ class RouteListController extends ChangeNotifier {
       _expandedRoutes.add(routeId);
     }
     notifyListeners();
-  }
-
-  bool isRouteExpanded(String routeId) {
-    return _expandedRoutes.contains(routeId);
   }
 }
 
@@ -67,155 +64,170 @@ class _RouteListPageState extends State<RouteListPage> {
 
   @override
   Widget build(BuildContext context) {
-    final ColorScheme colors = Theme.of(context).colorScheme;
+    final TextTheme text = Theme.of(context).textTheme;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Route List'),
-        centerTitle: true,
-      ),
+      backgroundColor: AppColors.canvas,
+      appBar: AppBar(title: const Text('Routes')),
       body: ListenableBuilder(
         listenable: _controller,
         builder: (context, _) {
           if (_controller.isLoading) {
             return const Center(child: CircularProgressIndicator());
           }
-
-          if (_controller.errorMessage != null) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(_controller.errorMessage!),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: _controller.loadRoutes,
-                    child: const Text('Retry'),
-                  ),
-                ],
-              ),
+          if (_controller.routes.isEmpty) {
+            return _EmptyState(
+              message: _controller.errorMessage ?? 'No routes',
+              onRetry: _controller.loadRoutes,
             );
           }
 
-          if (_controller.routes.isEmpty) {
-            return const Center(child: Text('No routes found'));
-          }
-
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
+          return ListView.separated(
+            padding: const EdgeInsets.all(AppSpacing.lg),
             itemCount: _controller.routes.length,
+            separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.sm),
             itemBuilder: (context, index) {
               final route = _controller.routes[index];
-              final isExpanded = _controller.isRouteExpanded(route.routeId);
-
-              return Card(
-                margin: const EdgeInsets.only(bottom: 12),
-                clipBehavior: Clip.antiAlias,
-                child: Column(
-                  children: [
-                    InkWell(
-                      onTap: () => _controller.toggleRoute(route.routeId),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color: colors.primaryContainer,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Icon(
-                                Icons.directions_bus,
-                                color: colors.onPrimaryContainer,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    route.routeName,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                  if (route.routeDescription != null)
-                                    Text(
-                                      route.routeDescription!,
-                                      style: TextStyle(
-                                        color: colors.outline,
-                                        fontSize: 13,
-                                      ),
-                                    ),
-                                  Text(
-                                    '${route.totalStops} stops',
-                                    style: TextStyle(
-                                      color: colors.outline,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Icon(
-                              isExpanded
-                                  ? Icons.keyboard_arrow_up
-                                  : Icons.keyboard_arrow_down,
-                              color: colors.outline,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    AnimatedCrossFade(
-                      firstChild: const SizedBox.shrink(),
-                      secondChild: Container(
-                        width: double.infinity,
-                        color: colors.surfaceContainerHighest,
-                        child: Column(
-                          children: [
-                            const Divider(height: 1),
-                            ...route.stops.asMap().entries.map((entry) {
-                              final stopIndex = entry.key;
-                              final stop = entry.value;
-                              return ListTile(
-                                leading: CircleAvatar(
-                                  radius: 14,
-                                  backgroundColor: colors.primary,
-                                  child: Text(
-                                    '${stopIndex + 1}',
-                                    style: TextStyle(
-                                      color: colors.onPrimary,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                                title: Text(stop.stopName),
-                                dense: true,
-                                contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 0,
-                                ),
-                              );
-                            }),
-                          ],
-                        ),
-                      ),
-                      crossFadeState: isExpanded
-                          ? CrossFadeState.showSecond
-                          : CrossFadeState.showFirst,
-                      duration: const Duration(milliseconds: 200),
-                    ),
-                  ],
-                ),
+              final bool expanded = _controller.isRouteExpanded(route.routeId);
+              return _RouteCard(
+                route: route,
+                expanded: expanded,
+                onTap: () => _controller.toggleRoute(route.routeId),
+                text: text,
               );
             },
           );
         },
+      ),
+    );
+  }
+}
+
+class _RouteCard extends StatelessWidget {
+  const _RouteCard({
+    required this.route,
+    required this.expanded,
+    required this.onTap,
+    required this.text,
+  });
+
+  final RouteWithStopsModel route;
+  final bool expanded;
+  final VoidCallback onTap;
+  final TextTheme text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.canvas,
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        border: Border.all(color: AppColors.hairline, width: 1),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: Column(
+          children: [
+            InkWell(
+              borderRadius: BorderRadius.circular(AppRadius.lg),
+              onTap: onTap,
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(route.routeName, style: text.titleMedium),
+                          if (route.routeDescription != null) ...[
+                            const SizedBox(height: 2),
+                            Text(
+                              route.routeDescription!,
+                              style: text.bodySmall,
+                            ),
+                          ],
+                          const SizedBox(height: 4),
+                          Text(
+                            '${route.totalStops} stops',
+                            style: text.labelSmall,
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(
+                      expanded ? Icons.expand_less : Icons.expand_more,
+                      color: AppColors.inkMuted48,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            AnimatedCrossFade(
+              firstChild: const SizedBox.shrink(),
+              secondChild: Column(
+                children: [
+                  const Divider(height: 1),
+                  ...route.stops.asMap().entries.map((entry) {
+                    final int i = entry.key;
+                    final stop = entry.value;
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.md,
+                        vertical: AppSpacing.sm,
+                      ),
+                      child: Row(
+                        children: [
+                          SizedBox(
+                            width: 24,
+                            child: Text(
+                              '${i + 1}',
+                              style: text.labelSmall?.copyWith(
+                                color: AppColors.inkMuted48,
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: Text(stop.stopName, style: text.bodyLarge),
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
+                  const SizedBox(height: AppSpacing.xs),
+                ],
+              ),
+              crossFadeState:
+                  expanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+              duration: const Duration(milliseconds: 180),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _EmptyState extends StatelessWidget {
+  const _EmptyState({required this.message, required this.onRetry});
+
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final TextTheme text = Theme.of(context).textTheme;
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.xl),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(message, style: text.bodyLarge, textAlign: TextAlign.center),
+            const SizedBox(height: AppSpacing.md),
+            FilledButton(onPressed: onRetry, child: const Text('Try again')),
+          ],
+        ),
       ),
     );
   }

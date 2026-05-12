@@ -9,5 +9,5 @@ class AppTheme {
 
   static ThemeData get darkTheme => DarkAppTheme.theme;
 
-  static ThemeMode get themeMode => ThemeMode.system;
+  static ThemeMode get themeMode => ThemeMode.light;
 }
