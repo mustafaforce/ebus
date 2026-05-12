@@ -7,6 +7,8 @@ import 'package:ebus/features/routes/presentation/pages/route_selection_page.dar
 import 'package:ebus/features/stops/presentation/pages/stop_selection_page.dart';
 import 'package:ebus/features/tracking/presentation/pages/passenger_tracking_page.dart';
 import 'package:ebus/features/route_list/presentation/pages/route_list_page.dart';
+import 'package:ebus/features/route_management/presentation/pages/create_route_page.dart';
+import 'package:ebus/features/route_management/presentation/pages/manage_routes_page.dart';
 import 'package:flutter/material.dart';
 
 class CentreRouter {
@@ -52,6 +54,16 @@ class CentreRouter {
       case AppRoutes.routeList:
         return MaterialPageRoute<void>(
           builder: (_) => const RouteListPage(),
+          settings: settings,
+        );
+      case AppRoutes.createRoute:
+        return MaterialPageRoute<bool>(
+          builder: (_) => const CreateRoutePage(),
+          settings: settings,
+        );
+      case AppRoutes.manageRoutes:
+        return MaterialPageRoute<void>(
+          builder: (_) => const ManageRoutesPage(),
           settings: settings,
         );
       default:

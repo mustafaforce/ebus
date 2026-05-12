@@ -16,11 +16,17 @@ Future<void> main() async {
     anonKey: SupabaseConfig.anonKey,
   );
 
-  runApp(const EBusApp());
+  final bool hasSession = Supabase.instance.client.auth.currentSession != null;
+  final String initialRoute =
+      hasSession ? AppRoutes.home : AppRoutes.driverLogin;
+
+  runApp(EBusApp(initialRoute: initialRoute));
 }
 
 class EBusApp extends StatelessWidget {
-  const EBusApp({super.key});
+  const EBusApp({super.key, required this.initialRoute});
+
+  final String initialRoute;
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +38,7 @@ class EBusApp extends StatelessWidget {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: AppTheme.themeMode,
-      initialRoute: AppRoutes.driverLogin,
+      initialRoute: initialRoute,
       onGenerateRoute: CentreRouter.onGenerateRoute,
       onGenerateInitialRoutes: (String initialRouteName) {
         return <Route<dynamic>>[

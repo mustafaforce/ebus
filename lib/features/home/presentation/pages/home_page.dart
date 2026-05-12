@@ -101,6 +101,20 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Future<void> _openCreateRoute() async {
+    await Navigator.of(context).pushNamed(AppRoutes.createRoute);
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  Future<void> _openManageRoutes() async {
+    await Navigator.of(context).pushNamed(AppRoutes.manageRoutes);
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
   Future<void> _openStopSelection() async {
     final result = await Navigator.of(context).pushNamed(AppRoutes.stopSelection);
     if (result != null && mounted) {
@@ -136,7 +150,7 @@ class _HomePageState extends State<HomePage> {
           ),
           body: snapshot.connectionState != ConnectionState.done
               ? const Center(child: CircularProgressIndicator())
-              : Padding(
+              : SingleChildScrollView(
                   padding: const EdgeInsets.all(16),
                   child: Center(
                     child: ConstrainedBox(
@@ -209,6 +223,33 @@ class _HomePageState extends State<HomePage> {
                               ),
                             ] else if (profile.role == UserRole.driver) ...[
                               const SizedBox(height: 24),
+                              SizedBox(
+                                width: double.infinity,
+                                child: OutlinedButton.icon(
+                                  onPressed: _openCreateRoute,
+                                  icon: const Icon(Icons.add_road),
+                                  label: const Text('Create Route'),
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              SizedBox(
+                                width: double.infinity,
+                                child: OutlinedButton.icon(
+                                  onPressed: _openManageRoutes,
+                                  icon: const Icon(Icons.edit_road),
+                                  label: const Text('Manage Routes'),
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              SizedBox(
+                                width: double.infinity,
+                                child: OutlinedButton.icon(
+                                  onPressed: _openRouteList,
+                                  icon: const Icon(Icons.list),
+                                  label: const Text('View Routes'),
+                                ),
+                              ),
+                              const SizedBox(height: 12),
                               if (RouteService.instance.hasRoute) ...[
                                 Container(
                                   width: double.infinity,
