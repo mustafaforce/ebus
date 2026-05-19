@@ -16,6 +16,21 @@ class LocationUpdateController extends ChangeNotifier {
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
 
+  final TextEditingController distanceController = TextEditingController();
+  final TextEditingController timeController = TextEditingController();
+
+  bool _showExtraFields = false;
+  bool get showExtraFields => _showExtraFields;
+
+  void toggleExtraFields() {
+    _showExtraFields = !_showExtraFields;
+    if (!_showExtraFields) {
+      distanceController.clear();
+      timeController.clear();
+    }
+    notifyListeners();
+  }
+
   Future<void> updateLocation() async {
     final route = RouteService.instance.selectedRoute;
     final stop = StopService.instance.selectedStop;
@@ -39,10 +54,15 @@ class LocationUpdateController extends ChangeNotifier {
     notifyListeners();
 
     try {
+      final double? dist = double.tryParse(distanceController.text.trim());
+      final int? time = int.tryParse(timeController.text.trim());
+
       await TrackingLocator.updateBusLocationUseCase(
         routeId: route.id,
         driverId: user.id,
         currentStopId: stop.id,
+        estimatedDistance: dist,
+        estimatedTimeMinutes: time,
       );
       _successMessage = 'Location updated successfully!';
     } catch (e) {
@@ -57,5 +77,12 @@ class LocationUpdateController extends ChangeNotifier {
     _successMessage = null;
     _errorMessage = null;
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    distanceController.dispose();
+    timeController.dispose();
+    super.dispose();
   }
 }

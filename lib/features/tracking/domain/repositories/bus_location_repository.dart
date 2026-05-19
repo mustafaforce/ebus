@@ -5,6 +5,8 @@ abstract class BusLocationRepository {
     required String routeId,
     required String driverId,
     required String currentStopId,
+    double? estimatedDistance,
+    int? estimatedTimeMinutes,
   });
 
   Future<BusLocationModel?> getBusLocation({

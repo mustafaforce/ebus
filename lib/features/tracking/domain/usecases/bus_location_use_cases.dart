@@ -9,11 +9,15 @@ class UpdateBusLocationUseCase {
     required String routeId,
     required String driverId,
     required String currentStopId,
+    double? estimatedDistance,
+    int? estimatedTimeMinutes,
   }) {
     return _repository.updateBusLocation(
       routeId: routeId,
       driverId: driverId,
       currentStopId: currentStopId,
+      estimatedDistance: estimatedDistance,
+      estimatedTimeMinutes: estimatedTimeMinutes,
     );
   }
 }

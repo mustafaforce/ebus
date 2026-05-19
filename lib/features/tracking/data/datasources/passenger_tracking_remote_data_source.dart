@@ -9,7 +9,7 @@ class PassengerTrackingRemoteDataSource {
   Future<PassengerTrackingModel?> getTrackingByRoute(String routeId) async {
     final locationResult = await _client
         .from('bus_locations')
-        .select('id, route_id, driver_id, current_stop_id, updated_at')
+        .select('id, route_id, driver_id, current_stop_id, updated_at, estimated_distance, estimated_time_minutes')
         .eq('route_id', routeId)
         .maybeSingle();
 
@@ -61,6 +61,8 @@ class PassengerTrackingRemoteDataSource {
       nextStopName: nextStopName,
       lastUpdated: DateTime.parse(locationResult['updated_at'] as String),
       driverName: driverResult?['full_name'] as String?,
+      estimatedDistance: (locationResult['estimated_distance'] as num?)?.toDouble(),
+      estimatedTimeMinutes: locationResult['estimated_time_minutes'] as int?,
     );
   }
 

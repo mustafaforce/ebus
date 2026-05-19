@@ -269,6 +269,69 @@ class _DriverSection extends StatelessWidget {
         ListenableBuilder(
           listenable: locationController,
           builder: (context, _) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                TextButton.icon(
+                  onPressed: () => locationController.toggleExtraFields(),
+                  icon: Icon(
+                    locationController.showExtraFields
+                        ? Icons.remove_circle_outline
+                        : Icons.add_circle_outline,
+                    size: 18,
+                  ),
+                  label: Text(
+                    locationController.showExtraFields
+                        ? 'Remove distance & time'
+                        : 'Add estimated distance & time',
+                  ),
+                ),
+                if (locationController.showExtraFields) ...[
+                  const SizedBox(height: AppSpacing.sm),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: locationController.distanceController,
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(
+                            labelText: 'Distance (km)',
+                            hintText: 'e.g. 2.5',
+                            border: OutlineInputBorder(),
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 10,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      Expanded(
+                        child: TextField(
+                          controller: locationController.timeController,
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(
+                            labelText: 'Time (min)',
+                            hintText: 'e.g. 5',
+                            border: OutlineInputBorder(),
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 10,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                ],
+              ],
+            );
+          },
+        ),
+        ListenableBuilder(
+          listenable: locationController,
+          builder: (context, _) {
             final bool enabled = hasRoute && hasStop && !locationController.isUpdating;
             return FilledButton(
               onPressed: enabled

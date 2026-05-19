@@ -5,6 +5,8 @@ class BusLocationModel {
     required this.driverId,
     required this.currentStopId,
     required this.updatedAt,
+    this.estimatedDistance,
+    this.estimatedTimeMinutes,
   });
 
   final String id;
@@ -12,6 +14,8 @@ class BusLocationModel {
   final String driverId;
   final String currentStopId;
   final DateTime updatedAt;
+  final double? estimatedDistance;
+  final int? estimatedTimeMinutes;
 
   factory BusLocationModel.fromDatabase(Map<String, dynamic> map) {
     return BusLocationModel(
@@ -20,14 +24,8 @@ class BusLocationModel {
       driverId: map['driver_id'] as String,
       currentStopId: map['current_stop_id'] as String,
       updatedAt: DateTime.parse(map['updated_at'] as String),
+      estimatedDistance: (map['estimated_distance'] as num?)?.toDouble(),
+      estimatedTimeMinutes: map['estimated_time_minutes'] as int?,
     );
-  }
-
-  Map<String, dynamic> toDatabase() {
-    return {
-      'route_id': routeId,
-      'driver_id': driverId,
-      'current_stop_id': currentStopId,
-    };
   }
 }

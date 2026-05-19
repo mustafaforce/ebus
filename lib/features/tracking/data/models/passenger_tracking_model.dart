@@ -8,6 +8,8 @@ class PassengerRouteInfo {
     required this.nextStopName,
     required this.lastUpdated,
     required this.driverName,
+    this.estimatedDistance,
+    this.estimatedTimeMinutes,
   });
 
   final String routeName;
@@ -18,6 +20,8 @@ class PassengerRouteInfo {
   final String? nextStopName;
   final DateTime lastUpdated;
   final String? driverName;
+  final double? estimatedDistance;
+  final int? estimatedTimeMinutes;
 
   String get lastUpdatedAgo {
     final difference = DateTime.now().difference(lastUpdated);
@@ -38,6 +42,7 @@ class PassengerRouteInfo {
   }
 
   bool get hasNextStop => nextStopName != null;
+  bool get hasExtraInfo => estimatedDistance != null || estimatedTimeMinutes != null;
 }
 
 class PassengerTrackingModel {
@@ -52,6 +57,8 @@ class PassengerTrackingModel {
     this.nextStopName,
     required this.lastUpdated,
     this.driverName,
+    this.estimatedDistance,
+    this.estimatedTimeMinutes,
   });
 
   final String routeId;
@@ -64,6 +71,8 @@ class PassengerTrackingModel {
   final String? nextStopName;
   final DateTime lastUpdated;
   final String? driverName;
+  final double? estimatedDistance;
+  final int? estimatedTimeMinutes;
 
   PassengerRouteInfo toRouteInfo() {
     return PassengerRouteInfo(
@@ -75,31 +84,8 @@ class PassengerTrackingModel {
       nextStopName: nextStopName,
       lastUpdated: lastUpdated,
       driverName: driverName,
-    );
-  }
-
-  factory PassengerTrackingModel.fromDatabase({
-    required Map<String, dynamic> location,
-    required Map<String, dynamic> route,
-    required Map<String, dynamic> currentStop,
-    Map<String, dynamic>? nextStop,
-    Map<String, dynamic>? driver,
-  }) {
-    final currentSeq = currentStop['sequence_order'] as int;
-    final totalStops = route['stops'] as List<dynamic>? ?? [];
-    final nextStopData = nextStop;
-
-    return PassengerTrackingModel(
-      routeId: route['id'] as String,
-      routeName: route['name'] as String,
-      routeDescription: route['description'] as String?,
-      currentStopId: currentStop['id'] as String,
-      currentStopName: currentStop['name'] as String,
-      currentStopSequence: currentSeq,
-      totalStops: totalStops.length,
-      nextStopName: nextStopData?['name'] as String?,
-      lastUpdated: DateTime.parse(location['updated_at'] as String),
-      driverName: driver?['full_name'] as String?,
+      estimatedDistance: estimatedDistance,
+      estimatedTimeMinutes: estimatedTimeMinutes,
     );
   }
 }

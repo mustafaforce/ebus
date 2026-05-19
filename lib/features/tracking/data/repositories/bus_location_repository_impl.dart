@@ -13,11 +13,15 @@ class BusLocationRepositoryImpl implements BusLocationRepository {
     required String routeId,
     required String driverId,
     required String currentStopId,
+    double? estimatedDistance,
+    int? estimatedTimeMinutes,
   }) {
     return _dataSource.upsertBusLocation(
       routeId: routeId,
       driverId: driverId,
       currentStopId: currentStopId,
+      estimatedDistance: estimatedDistance,
+      estimatedTimeMinutes: estimatedTimeMinutes,
     );
   }
 

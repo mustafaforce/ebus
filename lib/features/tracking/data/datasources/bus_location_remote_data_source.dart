@@ -10,13 +10,22 @@ class BusLocationRemoteDataSource {
     required String routeId,
     required String driverId,
     required String currentStopId,
+    double? estimatedDistance,
+    int? estimatedTimeMinutes,
   }) async {
+    final Map<String, dynamic> data = {
+      'route_id': routeId,
+      'driver_id': driverId,
+      'current_stop_id': currentStopId,
+    };
+    if (estimatedDistance != null) {
+      data['estimated_distance'] = estimatedDistance;
+    }
+    if (estimatedTimeMinutes != null) {
+      data['estimated_time_minutes'] = estimatedTimeMinutes;
+    }
     await _client.from('bus_locations').upsert(
-      {
-        'route_id': routeId,
-        'driver_id': driverId,
-        'current_stop_id': currentStopId,
-      },
+      data,
       onConflict: 'route_id,driver_id',
     );
   }
@@ -27,7 +36,7 @@ class BusLocationRemoteDataSource {
   }) async {
     final Map<String, dynamic>? map = await _client
         .from('bus_locations')
-        .select('id, route_id, driver_id, current_stop_id, updated_at')
+        .select('id, route_id, driver_id, current_stop_id, updated_at, estimated_distance, estimated_time_minutes')
         .eq('route_id', routeId)
         .eq('driver_id', driverId)
         .maybeSingle();
@@ -39,7 +48,7 @@ class BusLocationRemoteDataSource {
   Future<List<BusLocationModel>> getBusLocationsByRoute(String routeId) async {
     final List<Map<String, dynamic>> maps = await _client
         .from('bus_locations')
-        .select('id, route_id, driver_id, current_stop_id, updated_at')
+        .select('id, route_id, driver_id, current_stop_id, updated_at, estimated_distance, estimated_time_minutes')
         .eq('route_id', routeId);
 
     return maps.map((map) => BusLocationModel.fromDatabase(map)).toList();

@@ -289,6 +289,57 @@ class _PassengerTrackingPageState extends State<PassengerTrackingPage> {
               ),
             ),
           ],
+          if (info.hasExtraInfo) ...[
+            const SizedBox(height: 8),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      backgroundColor: colors.tertiaryContainer,
+                      child: Icon(
+                        Icons.speed,
+                        color: colors.onTertiaryContainer,
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Estimated to Next Stop'),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              if (info.estimatedDistance != null) ...[
+                                Icon(Icons.straighten, size: 16, color: colors.outline),
+                                const SizedBox(width: 4),
+                                Text(
+                                  '${info.estimatedDistance!.toStringAsFixed(1)} km',
+                                  style: const TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                const SizedBox(width: 16),
+                              ],
+                              if (info.estimatedTimeMinutes != null) ...[
+                                Icon(Icons.timer, size: 16, color: colors.outline),
+                                const SizedBox(width: 4),
+                                Text(
+                                  '${info.estimatedTimeMinutes} min',
+                                  style: const TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
           const SizedBox(height: 8),
           Card(
             child: ListTile(
